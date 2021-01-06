@@ -1,13 +1,19 @@
 from flask_sqlalchemy import SQLAlchemy
 
+from sqlalchemy import MetaData
+
 from datetime import datetime
 
 from flask_bcrypt import Bcrypt
 
 
+
+
+
+
 db = SQLAlchemy()
 
-
+metadata = MetaData()
 
 ### User Models ###
 
@@ -16,12 +22,15 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.COlumn(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=False)
     username = db.Column(db.Text, nullable=False)
     email = db.Column(db.Text, nullable=False)
     password = db.Column(db.Text, nullable=False)
-    weight_entries = db.relationship('WeightEntry')
-    workouts = db.relationship('Workout')
+    weight_entries = db.relationship('WeightEntry', backref='user')
+    workouts = db.relationship('Workout', backref='user')
+
+    def __repr__(self):
+        return f"<User #{self.id}: {self.name}, {self.username}, {self.email}, {self.weight_entries}, {self.workouts}>"
 
 
     @classmethod
@@ -52,10 +61,10 @@ class User(db.Model):
 class WeightEntry(db.Model):
     
     __tablename__ = 'weight_entry'
-    
+    id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
     weight = db.Column(db.Float, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 ### Workout Models ###
 
@@ -66,33 +75,32 @@ class Workout(db.Model):
     id= db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     date = db.Column(db.Date, nullable=False)
-    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
-    sets = db.relationship('Set')
-    time = db.Column(db.Time)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+    sets = db.relationship('Set', backref='workout')
+    time = db.Column(db.Integer)
 
 class Set(db.Model):
 
     __tablename__ = 'set'
 
-    exercise = db.relationship(db.Integer, db.ForeignKey('exercise.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    exercise = db.relationship('Exercise', backref='set',lazy=True)
     reps = db.Column(db.Integer)
     weight = db.Column(db.Integer)
     workout_id = db.Column(db.Integer,db.ForeignKey('workout.id'))
 
 
+
 ### Exercise Models ###
+muscles_used = db.Table('muscles_used',db.Model.metadata,
+            db.Column('exercise_id',db.Integer, db.ForeignKey('exercise.id')),
+            db.Column('muscle_id',db.Integer, db.ForeignKey('muscle.id'))
+        )
 
-
-class Exercise(db.Model):
-
-    __tablename__ = 'exercise'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name= db.Column(db.Text, nullable=False)
-    muscles = db.relationship('Muscle')
-    category = db.Column(db.ForeignKey('category.id'))
-    equipment = db.Column(db.ForeignKey('equipment.id'))
-    description = db.Column(db.Text)
+equipment_exercises = db.Table('equipment_exercises', db.Model.metadata,
+                    db.Column('equipment_id',db.Integer,db.ForeignKey('equipment.id')),
+                    db.Column('exercise_id',db.Integer,db.ForeignKey('exercise.id'))
+                )
 
 class Muscle(db.Model):
 
@@ -100,7 +108,10 @@ class Muscle(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text,nullable=False)
-    exercise = db.Column(db.ForeignKey('exercise.id'))
+    
+
+    def __repr__(self):
+        return f"<Muscle #{self.id}, {self.name}"
 
 class Category(db.Model):
 
@@ -108,7 +119,10 @@ class Category(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    exercises = db.relationship('Exercise')
+    exercises = db.relationship('Exercise',backref='category',lazy=True)
+    
+    def __repr__(self):
+        return f"<Category #{self.id},{self.name}, {self.exercises}>"
 
 class Equipment(db.Model):
 
@@ -116,24 +130,48 @@ class Equipment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    exercises = db.relationship('Exercise')
+    exercises = db.relationship('Exercise',secondary=equipment_exercises)
 
-
-
-
-
-
-
-
-
-
-        
-
+    def __repr__(self):
+        return f"<Equipment #{self.id},{self.name},{self.exercises}"
 
 
 
     
+class Exercise(db.Model):
+
+    __tablename__ = 'exercise'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name= db.Column(db.String(), nullable=False)
+    category_id = db.Column(db.Integer,db.ForeignKey('category.id'))
+    set_id = db.Column(db.Integer, db.ForeignKey('set.id'))
+    muscles = db.relationship('Muscle',secondary=muscles_used)
+    description = db.Column(db.Text)
+
+    def __repr__(self):
+        return f"Exercise #{self.id},{self.name},{self.muscles},{self.description}"
+    
+
+    
+
+
+    
+
+#### Association Tables ####
+
+
+
+
+
+
+   
 
 def connect_db(app):
+    """Connect the database to our Flask app."""
+
     db.app = app
-    db.init_app(app)
+    db.init_app(app)   
+
+
+
