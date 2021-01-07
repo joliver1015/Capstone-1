@@ -66,6 +66,26 @@ class WeightEntry(db.Model):
     weight = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    def get_latest_entry(self,user):
+        last_entries = WeightEntry.objects.filter(user_id=user.id).order_by('-date')[:5]
+        last_entries_details = []
+
+        for index, entry in enumerate(last_entries):
+            curr_entry = entry
+            prev_entry_index = index + 1
+
+            if prev_entry_index < len(last_entries):
+                prev_entry = last_entries[prev_entry_index]
+                else:
+                    prev_entry = None
+            if prev_entry and curr_entry:
+                weight_diff = curr_entry.weight - prev_entry.weight
+            else:
+                weight_diff = None
+            last_entries_details.append((curr_entry, weight_diff))
+        return last_entries_details
+
+
 ### Workout Models ###
 
 class Workout(db.Model):
@@ -78,6 +98,17 @@ class Workout(db.Model):
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
     sets = db.relationship('Set', backref='workout')
     time = db.Column(db.Integer)
+
+    def get_latest_workout(self,user):
+        last_workout = Workout.objects.filter(user=user).order_by('date').last()
+        if last_workout:
+            return last_workout
+        else:
+            return None
+       
+
+
+
 
 class Set(db.Model):
 
@@ -111,7 +142,7 @@ class Muscle(db.Model):
     
 
     def __repr__(self):
-        return f"<Muscle #{self.id}, {self.name}"
+        return f"<{self.name}>"
 
 class Category(db.Model):
 
@@ -150,20 +181,10 @@ class Exercise(db.Model):
     description = db.Column(db.Text)
 
     def __repr__(self):
-        return f"Exercise #{self.id},{self.name},{self.muscles},{self.description}"
+        return f"<{self.name}>"
     
 
     
-
-
-    
-
-#### Association Tables ####
-
-
-
-
-
 
    
 

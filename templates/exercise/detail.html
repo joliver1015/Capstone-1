@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>{{ exercise.name }}</h1>
+
+<h2>Muscles Used:</h2>
+
+<ul>
+    {% for muscle in exercise.muscles %}
+        <li>
+            {{ muscle.name }}
+        </li>
+</ul>
+
+<h2>Equipment Used:</h2>
+
+<p>{{ exercise.equipment }}</p>
+
+<h2>Description</h2>
+
+<p>{{ exercise.description }}</p>
+
+{% endblock %}

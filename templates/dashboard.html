@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row">
+    <div class="col-sm-8">
+        <h2 class="page-header">Dashboard</h2>
+    </div>
+    <hr>
+</div>
+
+<div class="card-deck">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Workout</h5>
+            <div class="card-text">
+                <p>
+                    <a href="/users/{{ g.user.id }}/workout/{{ last_workout.id }}">{{ last_workout.name }}</a>
+                </p>
+                <p>
+                    - {{ last_workout.date }}
+                </p>
+                
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="/users/{{ g.user.id }}/workout/new-workout" class="btn btn-success btn-sm btn-block">
+            Add new Workout
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Weight</h5>
+            <div class="card-text">
+
+                {% if latest_entry_details %}
+                    <p>
+                    
+                        Your current weight is:{{ latest_entry_details[0] }}    
+                    </p>
+                {% endif %}
+                {% if g.user.weight_entries %}
+                    <table class="table table-hover table-sm">
+                        <tr>
+                            <td>
+                                {{ latest_entry.date }}
+                            </td>
+                            <td>
+                                {{ latest_entry.weight }}
+                            </td>
+                            <td>
+                                {{ latest_entry_details[1]}}
+                            </td>
+                        </tr>
+                        {% for past_entry in past_entries %}
+                            <tr>
+                                <td>
+                                    {{ past_entry.date }}
+                                </td>
+                                <td>
+                                    {{ past_entry.weight }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="/users/{{ g.user.id }}/weight/new">Add Weight Entry</a>
+        </div>
+    </div>
+</div>

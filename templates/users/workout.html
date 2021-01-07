@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+    <ul>
+        {% for set in workout.sets %} 
+            <li>
+                <a href="/exercise/{{ set.exercise.id }}">{{ set.exercise.name }}</a>
+                {{ set.reps }}
+                {{ set.weight}}
+            </li>
+        {% endfor %}
+    </ul>
+    
+
+</div>
+
+{% endblock %}

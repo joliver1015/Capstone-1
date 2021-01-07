@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Create a new exercise</h1>
+<div>
+    <div>
+        <form method="POST">
+            {{ form.csrf_token }}
+            <div>
+                {% if form.text.errors %}
+                    {% for error in form.text.errors %}
+                        <span class="text-danger">
+                            {{ error }}
+                        </span>
+                    {% endfor %}
+                {% endif %}
+                {{ form.text(placeholder=field.label.text, class="form-control")}}
+            </div>
+            <button class="btn btn-outline-success btn-block">Add Exercise</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
