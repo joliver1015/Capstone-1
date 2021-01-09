@@ -8,7 +8,7 @@ from wtforms_sqlalchemy.fields import QuerySelectField
 class WorkoutForm(FlaskForm):
 
     workout_name = StringField('Workout Name', validators=[DataRequired()])
-    date = DateField('Workout Date', default=date.today))
+    date = DateField('Workout Date', default=date.today)
     time = IntegerField('Time Elapsed(min)')
 
 class SetForm(FlaskForm):
@@ -30,6 +30,12 @@ class SignUp(FlaskForm):
 class Login(FlaskForm):
     username = StringField('Name', validators=[DataRequired()])
     password = PasswordField('Password',validators=[DataRequired(),Length(min=8)])
+
+class WeightEntryForm(FlaskForm):
+    date = DateField("Date",default=date.today)
+    weight = IntegerField("Weight(lbs)",validators=[DataRequired()])
+
+
 
 
 

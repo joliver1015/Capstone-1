@@ -1,0 +1,22 @@
+{% extends 'base.html'}
+{% block content %}
+
+<div>
+    <h2>Weight Entries for {{ user.username }}</h2>
+</div>
+<div>
+    <table>
+        <th>Date Logged</th>
+        <th>Weight(lbs)</th>
+        {% for weight_entry in user.weight_entries %}
+            <tr>
+                <td>
+                    {{ weight_entry.date }}
+                </td>
+                <td>
+                    {{ weight_entry.weight }}
+                </td>
+            </tr>
+    </table>
+    <a href="/users/{{ g.user.id }}/weight/new" class="btn btn-success btn-sm">Add New Weight Entry</a>
+</div>

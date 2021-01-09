@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<ul class="list-group">
+    {% for muscle in muscles %}
+        <li class="list-group-item">
+            <a href="/exercises/{{ muscle.id }}/view">{{ muscle.name }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock%}

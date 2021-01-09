@@ -14,10 +14,12 @@
                     </span>
                 {% endfor %}
             {% endif %}
-
+            {{ field(placeholder=field.label.text, class="form-control") }}        
         </div>
         <button class="btn btn-outline-success btn-block">Add Workout</button>
     </form>
+    
+    
 </div>
 
 {% endblock %}

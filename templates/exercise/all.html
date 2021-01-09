@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<ul class="list-group">
+    {% for exercise in exercises %}
+        <li class="list-group-item">
+            <a href="/exercises/{{ exercise.id }}">{{ exercise.name }}</a>
+        </li>
+</ul>
+
+{% endblock %}
+
+{% block sidebar %}
+{% if g.user %}
+    <p>
+        <a href="/exercises/add">Add new Exercise</a>
+    </p>
+{% endif %}
+{% endblock %}
