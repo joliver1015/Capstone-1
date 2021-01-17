@@ -31,6 +31,7 @@ class User(db.Model):
     password = db.Column(db.Text, nullable=False)
     workouts = db.relationship("Workout", cascade="all, delete")
     weight_entries = db.relationship("WeightEntry", cascade="all, delete")
+    
 
     def __repr__(self):
         return f"<User # {self.id}: {self.username}>"

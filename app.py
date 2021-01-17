@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from models import db, connect_db, User, WeightEntry, Workout, Set, Exercise, Category, Muscle, Equipment
 from sqlalchemy.types import Text
 from forms import *
-
+from seed import seed_data
 
 CURR_USER_KEY = 'curr_user'
 
@@ -19,7 +19,6 @@ app.config['SECRET_KEY'] = 'Secret_150%'
 connect_db(app)
 
 app.app_context().push()
-
 
 
 db.create_all()
@@ -47,9 +46,6 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
-
-
-    
 
 @app.route('/signup', methods=["GET","POST"])
 def signup():
@@ -175,15 +171,16 @@ def delete_user():
 @app.route('/')
 def show_welcome():
     """ Shows home page to users not logged in """
+    if g.user:
+        return redirect('/dashboard')
     return render_template("home.html")
 
 @app.route('/dashboard', methods=["GET"])
 def dashboard():
 
-    """ Shows user's dashboard as home page if logged in"""
+    """ Shows user's dashboard as home page if user is logged in"""
 
     if "user_id" not in session:
-        flash("You must be logged in to view dashboard")
         return redirect("/")
     
     else:
@@ -198,9 +195,20 @@ def dashboard():
             curr_entry = g.user.weight_entries[-1]
             prev_entry = g.user.weight_entries[0]
             weight_diff = curr_entry.weight - prev_entry.weight
+        else:
+            curr_entry = None
+            prev_entry = None
+            weight_diff = None
 
 
         return render_template("dashboard.html", current_weight=curr_entry, weight_diff=weight_diff,latest_workout=latest_workout)
+
+@app.route('/unauthorized',methods=["GET"])
+def show_unauthorized_page():
+
+    """ Shows page for users not logged in trying to access account-only features """
+
+    return render_template("unauthorized.html")
 
 ##################################################
 #Workout Routes
@@ -212,7 +220,7 @@ def show_all_workouts():
 
     if not g.user:
         flash("You must be logged in to view this page")
-        return redirect("/")
+        return redirect("/unauthorized")
     
     else:
 
@@ -228,7 +236,7 @@ def view_workout(workout_id):
 
     if  not g.user:
         flash("You must be logged in to view this page")
-        return redirect("/")
+        return redirect("/unauthorized")
 
     else:
         workout = Workout.query.get_or_404(workout_id)
@@ -245,11 +253,10 @@ def view_workout(workout_id):
 @app.route('/workout/new',methods=["GET","POST"])
 def new_workout():
 
-    """ Page for creating a newe workout """
+    """ Page for creating a new workout """
 
     if  not g.user:
-        flash("You must be logged in to view dashboard")
-        return redirect("/")
+        return redirect("/unauthorized")
     
     else:
 
@@ -309,7 +316,7 @@ def all_weight_entries():
 
     if not g.user:
         flash("You must be logged in to view this page")
-        return redirect("/")
+        return redirect("/unauthorized")
     
     else:
 
@@ -325,7 +332,7 @@ def new_entry():
 
     if not g.user:
         flash("You must be logged in to view this page")
-        return redirect("/")
+        return redirect("/unauthorized")
     
     else:
 
@@ -416,7 +423,7 @@ def delete_exercise(exercise_id):
 
     if not g.user:
         flash("Access unauthorized.", "danger")
-        return redirect("/")
+        return redirect("/unauthorized")
     
     exercise = Exercise.query.get(exercise_id)
     db.session.delete(exercise)
