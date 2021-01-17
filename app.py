@@ -1,10 +1,13 @@
-from flask import Flask
+from flask import Flask, render_template, redirect, request, flash, g, session, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from flask_migrate import Migrate
-from models import *
+from models import db, connect_db, User, WeightEntry, Workout, Set, Exercise, Category, Muscle, Equipment
+from sqlalchemy.types import Text
 from forms import *
 
-CURR_USER_KEY = "curr_user"
+
+CURR_USER_KEY = 'curr_user'
 
 app = Flask(__name__)
 
@@ -12,219 +15,491 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhos
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SECRET_KEY'] = 'Secret_150%'
-migrate = Migrate(app, db)
 
 connect_db(app)
 
+app.app_context().push()
+
+
+
+db.create_all()
+
+
+
+
 #######################################################################################################
 # User signup/login/logout
-
 @app.before_request
 def add_user_to_g():
-    """ If logged in, add curr user to Global Flask"""
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
+
     else:
         g.user = None
-    
+
 def do_login(user):
-    """ Log in user. """
+
     session[CURR_USER_KEY] = user.id  
 
 def do_logout():
-    """ Logout user. """
+
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+
+
+
     
 
 @app.route('/signup', methods=["GET","POST"])
 def signup():
-    """ Handle user signup.
 
-    Creates new user and add to DB. Redirect to user dashboard.
+    """ Shows registration page and form """
 
-    Redirects user to form if there is already a user with that username. 
-    """
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+    
 
     form = SignUp()
 
     if form.validate_on_submit():
-        try:
-            user = User.signup(
-                name = form.name.data,
-                username = form.name.data,
-                email=form.email.data,
-                password = form.password.data,
-            )
 
-        except IntegrityError:
-            flash("username already taken",'danger')
-            return render_template('users/signup.html', form=form)
+        username = form.username.data  
+        pwd = form.password.data
+
+        user = User.register(username,pwd)
+        db.session.add(user)
+        
+        db.session.commit()
 
         do_login(user)
+       
+        
 
+        return redirect('/dashboard')
+    
+    return render_template("users/signup.html", form=form)
+        
+    
+
+
+@app.route('/login',methods=["GET","POST"])
+def login():
+
+    """ Shows log-in page """
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        user = User.authenticate(username, password)
+        if user:
+            do_login(user)
+            flash(f"Welcome Back, {user.username}!", "primary")
+            session['user_id'] = user.id
+            
+            return redirect('/dashboard')
+        else:
+            form.username.errors = ['Invalid username/password.']
+
+    return render_template('users/login.html', form=form)
+   
+
+@app.route('/logout')
+def logout_user():
+    do_logout()
+    return redirect('/')
+
+################################################
+# Other User actions:
+
+@app.route('/user/settings',methods=["GET"])
+def user_settings():
+
+    """ Show user settings page"""
+
+    if not g.user:
+        if "user_id" not in session:
+            flash("You must be logged in to view this page")
+            return redirect("/")
+    
+    return render_template("users/settings.html")
+
+@app.route('/user/edit')
+def user_edit():
+    user = g.user
+
+    if not g.user:
+        if "user_id" not in session:
+            flash("You must be logged in to view this page")
+            return redirect("/")
+    
+    form = SignUp()
+
+    if form.validate_on_submit():
+        
+        user.username = form.username.data
+        user.password = form.password.data
+    
+        db.session.commit()
+        return redirect(f"/users/settings")
+    
+    render_template(f"/users/edit", form=form)
+
+@app.route('/user/delete', methods=["POST"])
+def delete_user():
+
+    """ Delete User"""
+
+    if not g.user:
+        if not g.user:
+            flash("Access unauthorized.", "danger")
+            return redirect("/")
+    
+    
+    
+    do_logout()
+
+    
+    
+    db.session.delete(g.user)
+    db.session.commit()
+
+    return redirect('/signup')
+
+################################################
+# Homepage and dashboard
+
+@app.route('/')
+def show_welcome():
+    """ Shows home page to users not logged in """
+    return render_template("home.html")
+
+@app.route('/dashboard', methods=["GET"])
+def dashboard():
+
+    """ Shows user's dashboard as home page if logged in"""
+
+    if "user_id" not in session:
+        flash("You must be logged in to view dashboard")
+        return redirect("/")
+    
+    else:
+
+        if g.user.workouts:
+            latest_workout = g.user.workouts[-1]
+        
+        else:
+            latest_workout= None
+        
+        if g.user.weight_entries:
+            curr_entry = g.user.weight_entries[-1]
+            prev_entry = g.user.weight_entries[0]
+            weight_diff = curr_entry.weight - prev_entry.weight
+
+
+        return render_template("dashboard.html", current_weight=curr_entry, weight_diff=weight_diff,latest_workout=latest_workout)
+
+##################################################
+#Workout Routes
+
+@app.route('/workout/overview',methods=["GET"])
+def show_all_workouts():
+
+    """ Shows all of a user's workouts """
+
+    if not g.user:
+        flash("You must be logged in to view this page")
+        return redirect("/")
+    
+    else:
+
+        all_workouts = g.user.workouts
+
+        return render_template("workout/overview.html", workouts=all_workouts)
+
+
+@app.route('/workout/view/<workout_id>',methods=["GET"])
+def view_workout(workout_id):
+
+    """ Shows specific workout details """
+
+    if  not g.user:
+        flash("You must be logged in to view this page")
         return redirect("/")
 
     else:
-        return render_template('users/signup.html'form=form)
-
-@app.route('/logout')
-def logout():
-    """Handle logout of user"""
-
-    do_logout()
-    flask("You have successfully logged out")
-
-    return redirect("/")
-
-############## Workout Routes #######################
-
-@app.route('/workout/<int:workout.id>',methods=["GET"])
-def show_workout(workout_id):
-    """ Show workout details"""
+        workout = Workout.query.get_or_404(workout_id)
     
-    user = g.user
 
-    workout = user.workouts.query.get_or_404(workout_id)
+        form = SetForm()
+       
 
-    return render_template('users/workout.html', user=user, workout=workout)
+            
 
-@app.route('/workout/new', methods=["GET","POST"])
-def add_workout():
-    """ Add a workout
+    return render_template("workout/detail.html",form=form, workout=workout)
+    
 
-    Show form if GET. If valid adds workout to user and redirects to workout page to add sets """
+@app.route('/workout/new',methods=["GET","POST"])
+def new_workout():
 
-    if not g.user:
-        flash("Access unauthorized", "danger")
+    """ Page for creating a newe workout """
+
+    if  not g.user:
+        flash("You must be logged in to view dashboard")
         return redirect("/")
     
-    form = WorkoutForm()
+    else:
 
-    if form.validate_on_submit():
-        wo = Workout(name=form.name.data,date=form.date.data,time=form.time.data)
-        g.user.workouts.append(wo)
-        db.session.commit()
-
-        return redirect(f"/workout/{wo.id}")
+        form = WorkoutForm()
     
-    return render_template('workout/new.html', form=form)
+        if form.validate_on_submit():
 
-@app.route('/workout/<int:workout.id>/set/new'methods=["GET","POST"])
-def add_set(workout_id):
+            new_workout = Workout(
+                name = form.name.data,   
+                date = form.date.data,   
+                time = form.time.data,
+                user_id = g.user.id
+            )
+            
+            g.user.workouts.append(new_workout)
+            db.session.commit()
+            return redirect(url_for('view_workout',workout_id=new_workout.id))
+    
+    return render_template("workout/new.html",form=form)
 
-    if not g.user:
-        flash("Access unauthorized", "danger")
-        return("/")
-    
-    workout = g.user.workouts.query.get_or_404(workout_id)
-    
+######################################################################################
+# Set Routes
+
+@app.route('/workout/<workout_id>/new-set', methods=["POST"])
+def new_set(workout_id):
+
+    """ Creates a new set on the workout page """
+
+
+    workout = Workout.query.get_or_404(workout_id)
+
     form = SetForm()
 
     if form.validate_on_submit():
-        workout_set = Set(exercise=form.exercise.data,reps=form.reps.data,weight=form.weight.data)
-        workout.sets.append(workout_set)
+
+        new_set = Set(
+            exercise = form.exercise.data,   
+            reps = form.reps.data,
+            weight = form.weight.data,
+            workoutid = workout_id
+        )
+
+        workout.sets.append(new_set)
         db.session.commit()
+        return redirect(url_for('view_workout',workout_id=workout_id))
     
-        return redirect(f'/workout/{workout_id}')
-    
-    return render_template('workout/new-workout.html', form=form)
-    
+    return render_template('workout/new-set.html', form = form)
 
-############### Weight Entry Routes ####################
 
-@app.route('/weight-entries/all',methods=["GET"])
-def show_all_entries(user_id):
+#####################################################################################
+# Weight entry routes
 
-    user = User.query.get_or_404(user_id)
+@app.route('/weightentries/overview', methods=["GET"])
+def all_weight_entries():
 
-    return render_template("/users/weight-entries",user=user, weight_entries=user.weight_entries)
-
-@app.route('/weight-entries/new',methods=["GET","POST"])
-def add_weight_entry():
+    """ Shows the user's entire weight log """
 
     if not g.user:
-        flash("Access unauthorized", "danger")
+        flash("You must be logged in to view this page")
         return redirect("/")
     
-    form = WeightEntryForm()
+    else:
 
-    if form.validate_on_submit():
-        entry = WeightEntry(date=form.date.data,weight=form.weight.data)
-        g.user.weight_entries.append(entry)
-        db.session.commit()
-
-        return redirect(f'/weight-entries/all')
+        all_weight_entries = g.user.weight_entries 
     
-    return render_template('weight-entries/new-weight.html', form=form)
+    return render_template("weight-entries/all.html", weight_entries = all_weight_entries)
 
-#################### Exercise Routes ################################
 
-@app.route('/exercises/overview', methods=["GET"])
+@app.route('/weightentries/new', methods=["GET","POST"])
+def new_entry():
+
+    """ Page for adding a new weight entry """
+
+    if not g.user:
+        flash("You must be logged in to view this page")
+        return redirect("/")
+    
+    else:
+
+        form = WeightEntryForm()
+
+        if form.validate_on_submit():
+
+            new_weight_log = WeightEntry(
+               date = form.date.data,   
+               weight = form.weight.data,
+               user_id = g.user.id 
+            )
+
+            g.user.weight_entries.append(new_weight_log)
+            db.session.commit()
+            return redirect('/weightentries/overview')
+    
+    return render_template("weight-entries/new-weight.html", form=form)
+
+
+
+
+
+#################################################################################
+#Exercise Routes
+
+@app.route('/exercise/overview',methods=["GET"])
 def show_all_exercises():
 
-    """ Shows all exercises alphabetically"""
+    """ Page for showing all exercises """
 
-    exercises = Exercise.query.order_by(exercise.name)
+    all_exercises = Exercise.query.all()
 
-return render_template("exercise/all.html", exercises=exercises)
+    return render_template("exercise/all.html", exercises=all_exercises)
 
-@app.route('/exercises/new', methods=["GET","POST"])
-def add_exercise():
+@app.route('/exercise/<exercise_id>/view',methods=["GET"])
+def view_exercise(exercise_id):
 
-    """ Adds new exercise if logged in as user """
+    exercise = Exercise.query.get_or_404(exercise_id)
+
+    return render_template("exercise/detail.html", exercise=exercise)
+
+
+@app.route('/exercise/new',methods=["GET","POST"])
+def create_exercise():
+
+    """ Page for creating a new exercise """
 
     if not g.user:
-        flash("Access unauthorized","danger")
+        flash("You must be logged in to view this page")
         return redirect("/")
     
-    form = ExerciseForm()
+    else:
+        form = ExerciseForm()
 
-    if form.validate_on_submit():
-        new_exercise = Exercise(name=form.name.data,category=form.category.data,muscles_used=form.muscles_used.data,description=form.description.data)
-        form.category.data.append(new_exercise)
-        db.session.commit()
+        if form.validate_on_submit():
 
-        return redirect(f'/exercises/all')
+            new_exercise = Exercise(
+                name = form.name.data,
+                category = form.category.data,
+                muscles = form.muscles_used.data,   
+                equipment = form.equipment.data,
+                description = form.description.data
+            )
+                
+            category = form.category.data
+            equipment = form.equipment.data
+            muscles = form.muscles_used.data
+
+            category.exercises.append(new_exercise)
+
+
+            for equip in equipment:
+                equip.exercises.append(new_exercise)
+            
+            for muscle in muscles:
+                muscle.exercises.append(new_exercise)    
+            
+            db.session.commit()
+            return redirect(url_for("show_all_exercises"))
     
-    render_template("exercise/new.html", form=form)
+    return render_template("exercise/new.html", form=form)
 
-@app.route('/exercises/categories/overview',methods=["GET"])
-def show_all_categories():
+@app.route('/exercise/<exercise_id>/delete',methods=["POST"])
+def delete_exercise(exercise_id):
 
-    """ Shows exercise categories alphabetically  """
+    """ Deletes an exercise from the database """
 
-    categories = Category.query.order_by(category.name)
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    exercise = Exercise.query.get(exercise_id)
+    db.session.delete(exercise)
+    db.session.commit()
 
-    return render_template("/exercises/categories/overview.html", categories=categories)
+    return redirect(url_for("show_all_exercises"))
 
-@app.route('/exercises/muscles/overview', methods=["GET"])
-def show_all_muscles():
+#################################################################
+#Exercise Categories
 
-    """ Shows muscles alphabetically """
+@app.route('/exercise/categories/overview',methods=["GET"])
+def view_all_categories():
 
-    muscles = Muscle.query.order_by(muscle.name)
+    """ Shows all exercise categories """
 
-    return render_template("exercise/muscles/overview.html", muscles=muscles)
+    all_categories = Category.query.all()
 
-@app.route('/exercises/categories/<int:category.id>/view', methods=["GET"])
-def exercises_by_category(category_id):
+    return render_template("exercise/categories/overview.html", categories = all_categories)
 
-    """ Shows exercises by category """
+@app.route('/exercise/categories/<category_id>/view', methods=["GET"])
+def view_category(category_id):
+
+    """ Shows exercises related to specific category """
 
     category = Category.query.get_or_404(category_id)
 
     return render_template("exercise/categories/view.html", category=category)
 
-@app.route('/exercises/muscles/<int:muscle.id>/view/<str:muscle.name>', methods=["GET"])
-def exercises_by_muscles(muscle_id):
+#########################################################################
+#Muscle Routes
+
+
+
+@app.route('/exercise/muscles/overview', methods=["GET"])
+def show_all_muscles():
+
+    """ Shows all muscles in database """
+
+    all_muscles = Muscle.query.all()
+
+    return render_template("exercise/muscles/overview.html", muscles = all_muscles)
+
+@app.route('/exercise/muscles/<muscle_id>/view',methods=["GET"])
+def view_muscle_exercises(muscle_id):
+
+    """ Shows all exercises used by specfic muscle """
+
+    muscle = Muscle.query.get_or_404(muscle_id)
+
+    return render_template("exercise/muscles/view.html", muscle= muscle)
+
+############################################################################################
+#Equipment Routes
+
+@app.route('/exercise/equipment/overview', methods=["GET"])
+def show_all_equipment():
+
+    """ Shows all exercise equipment """
+
+    all_equipment = Equipment.query.all()
+
+    return render_template("exercise/equipment/overview.html", equipment=all_equipment)
+
+@app.route('/exercise/equipment/<equipment_id>/view', methods=["GET"])
+def view_equipment_exercises(equipment_id):
+
+    """ Shows all exercises that use specfic equipment """
+
+    equipment = Equipment.query.get(equipment_id)
+
+    return render_template("exercise/equipment/view.html", equipment=equipment)
+
+
+
+
+
+
+
+
+
     
-    """ Shows exercises by muscle """
 
-    exercises = Exercise.query.filter(muscles_used.id=muscle_id)
 
-    return render_template("exercise/muscles/view.html", exercises=exercises)
 
 
 

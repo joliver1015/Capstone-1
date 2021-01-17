@@ -1,23 +1,47 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>{{ exercise.name }}</h1>
+<div class="row">
+    <div class="col-12 col-md-8">
+        <h2 id="page-title" class="page-header">
+            {{ exercise.name }}
+        </h2>
+        <hr>
+    </div>
+    <div class="col-md-4 py-3">
+        <div class="btn-group">
+            <form action="/exercise/{{ exercise.id }}/delete" method="post">
+                <input type="submit" value="Delete Exercise" class="btn btn-danger btn-small">
+            </form>
+        </div>
+    </div>
+</div>
 
-<h2>Muscles Used:</h2>
+<div class="row">
+    <div class="col-md-8 order-2 order-2 order-sm-1 mt-3">
+        <div id="content">
+            
 
-<ul>
-    {% for muscle in exercise.muscles %}
-        <li>
-            {{ muscle.name }}
-        </li>
-</ul>
-
-<h2>Equipment Used:</h2>
-
-<p>{{ exercise.equipment }}</p>
-
-<h2>Description</h2>
-
-<p>{{ exercise.description }}</p>
+                    <h5 class="list-group-item-heading">Category:</h5>
+                    <p class="list-group-item-text">{{ exercise.category }}</p>
+               
+                
+                    <h5 class="list-group-item-heading">Description</h5>
+                    <p class="list-group-item-text">{{ exercise.description}}</p>
+                
+                
+                
+                    <h5 class="list-group-item-heading">Muscles Used:</h5>
+                    <p class="list-group-item-text">{{ exercise.muscles }}</p>
+                
+                
+                
+                    <h5 class="list-group-item-heading">Equipment Used:</h5>
+                    <p class="list-group-item-text">{{ exercise.equipment }}</p>
+                
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

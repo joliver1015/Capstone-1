@@ -7,6 +7,25 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     </head>
     <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            {% if g.user %}
+            <a class="navbar-brand" href="/dashboard">Pinnacle</a>
+            {% else %}
+            <a class="navbar-brand" href="/">Pinnacle</a>
+            {% endif %}
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+              <div class="navbar-nav">
+                <a class="nav-item nav-link active" href="/exercise/overview">Exercises<span class="sr-only">(current)</span></a>
+                <a class="nav-item nav-link" href="/exercise/categories/overview">Categories</a>
+                <a class="nav-item nav-link" href="/exercise/muscles/overview">Muscles</a>
+                <a class="nav-item nav-link " href="/exercise/equipment/overview">Equipment</a>
+              </div>
+              <a class="text-right" href="/user/settings">{{ g.user.username }}</a> 
+            </div>
+          </nav>
         {% block content %}
         {% endblock %}
     </body>

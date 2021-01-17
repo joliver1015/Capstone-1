@@ -1,10 +1,42 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div>
-    <h1>Welcome!</h1>
-    <div>
-        <a href="/users/login" class="btn btn-primary btn-sm btn-block">Login</a>
-        <a href="/users/signup" class="btn btn-primary btn-sm btn-block">Signup</a>
+
+<header>
+    <div class="container">
+        <div class="intro-text text-center">
+            <div class="intro-heading"><h2>Welcome to Pinnacle</h2></div>
+            <br>
+            <div class="intro-lead-in"><h4>Build your workouts.</h4></div>
+            <br>
+            <div class="intro-lead-in"><h4>Track your progress.</h4></div>
+            <br>
+            <div class="intro-lead-in"><h4>Reach your pinnacle.</h4></div>
+        </div>
+        <br>
+        <div class="text-center">
+            <a href="/login" class="page-scroll btn btn-xl btn-primary" style="margin-top: lem,">Log In</a>
+
+            <a href="/signup" class="page-scroll btn btn-xl btn-primary" style="margin-top: lem,">Sign Up</a>
+        </div>
     </div>
-</div>
+</header>
+<br>
+<section class="bg-darkest-gray">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2 class="section-heading">Features</h2>
+            </div>
+        </div>
+        <br>
+        <div class="col-lg-12 text-center">
+                    <h4>Weight Tracker</h4>
+                    <br>
+                    <h4>Workout Log</h4>
+                    <br>
+                    <h4>Exercise Database</h4>
+        </div>
+    </div>
+</section>
+{% endblock %}

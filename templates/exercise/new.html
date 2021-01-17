@@ -3,22 +3,55 @@
 
 <h1>Create a new exercise</h1>
 <div>
-    <div>
-        <form method="POST">
-            {{ form.csrf_token }}
-            <div>
-                {% if form.text.errors %}
-                    {% for error in form.text.errors %}
-                        <span class="text-danger">
-                            {{ error }}
-                        </span>
+    <form method="POST">
+        <div class="form-group">
+            <div class="list-group">
+                <div class="list-group-item">   
+                    {{ form.csrf_token }}
+                    {{ form.name.label}}
+                    {{ form.name }}
+                    {% for error in form.name.errors %}
+                        <li style="color:red;">{{ error }}</li>
                     {% endfor %}
-                {% endif %}
-                {{ form.text(placeholder=field.label.text, class="form-control")}}
+                </div> 
+                <div class="list-group-item">
+                    {{ form.csrf_token }}
+                    {{ form.category.label }}
+                    {{ form.category }}
+                    {% for error in form.category.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}   
+                </div>
+                <div class="list-group-item">
+                    {{ form.csrf_token }}
+                    {{ form.muscles_used }}
+                    {% for error in form.muscles_used.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </div>
+                
+                <div class="list-group-item">
+                    {{ form.csrf_token }}
+                    {{ form.equipment.label }}
+                    {{ form.equipment }}
+                    {% for error in form.equipment.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </div>
+                
+                <div class="list-group-item">
+                    {{ form.csrf_token }}
+                    {{ form.description.label }}
+                    {{ form.description }}
+                    {% for error in form.description.errors %}
+                        <p style="color:red;">{{ error }}</p>
+                    {% endfor %}
+                </div>
             </div>
-            <button class="btn btn-outline-success btn-block">Add Exercise</button>
-        </form>
-    </div>
+            <button class="btn btn-outline-success btn-sm">Add Exercise</button>
+        </div>
+    </form>
+    
 </div>
 
 {% endblock %}

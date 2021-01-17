@@ -4,13 +4,13 @@
 <div class="row">
     <div class="col-12 col-md-8">
         <h2 id="page-title" class="page-header">
-            {{ category.name }}
+            Your Workouts
         </h2>
         <hr>
     </div>
     <div class="col-md-4 py-3">
         <div class="btn-group">
-            <a href="/exercise/new" class="btn btn-success btn-sm">Add Exercise</a>
+            <a href="/workout/new" class="btn btn-success btn-sm">Add Workout</a>
 
         </div>
     </div>
@@ -20,10 +20,10 @@
     <div class="col-md-8 order-2 order-2 order-sm-1 mt-3">
         <div>
             <div class="list-group">
-                {% for exercise in category.exercises %}
-                <a href = "/exercise/{{exercise.id}}/view" class="list-group-item">
-                    <p class="list-group-item-heading h5">{{ exercise.name }}</p>
-                    <p class="list-group-item-text">{{ exercise.equipment }}</p>
+                {% for workout in workouts %}
+                <a href = "/workout/view/{{workout.id}}" class="list-group-item">
+                    <p class="list-group-item-heading h5">{{ workout.name }}</p>
+                    <p class="list-group-item-text">{{ workout.date }}</p>
                 </a>
                 {% endfor %}
             </div>

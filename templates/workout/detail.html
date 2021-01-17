@@ -1,18 +1,53 @@
 {% extends 'base.html' %}
 {% block content %}
-<div>
-    <ul>
-        {% for set in workout.sets %} 
-            <li>
-                <a href="/exercise/{{ set.exercise.id }}">{{ set.exercise.name }}</a>
-                {{ set.reps }}
-                {{ set.weight}}
-            </li>
+
+<div class="row">
+    <div class="col-12 col-md-8">
+        <h2 id="page-title" class="page-header">
+            {{ workout.name }}
+        </h2>
+        <hr>
+    </div>
+    <div class="col-md-4 py-3">
+        <div class="btn-group">
+           <a href="/workout/overview" class="btn btn-primary btn-sm">All Workouts</a>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8 order-2 order-2 order-sm-1 mt-3">
+        <form action="/workout/{{workout.id}}/new-set" method="POST">
+            {{ form.hidden_tag() }}
+            {% for field in form
+                if field.widget.input_type != 'hidden' %}
+            <p>
+                {{ field.label }}
+                {{ field(class_="form-control") }}
+          
+                {% for error in field.errors %}
+            {% endfor %}
+        </p>
         {% endfor %}
-    </ul>
+
+            <button class="btn btn-success btn-sm">Add Set</a>
+        </form>
+    </div>
 </div>
-<div>
-    <a href="/users/{{ user.id }}/workouts/{{ workout.id }}/add-set">Add New Set</a>
+
+
+<div class="row">
+    <div class="col-md-8 order-2 order-2 order-sm-1 mt-3">
+        <div>
+            <div class="list-group">
+                {% for set in workout.sets %}
+                <p class="list-group-item-heading h5">Exercise: {{ set.exercise }}</p>
+                <p class="list-group-item-text">Repetitions :{{ set.reps }}</p>
+                <p class="list-group-item-text"> Weight :{{ set.weight }}<span><form action="/workout/{{ workout_id }}/delete-set" method="post"></form><input type="submit" value="Delete Set" class="btn btn-danger btn-small"></span></p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
+
 
 {% endblock %}

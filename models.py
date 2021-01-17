@@ -13,7 +13,12 @@ from flask_bcrypt import Bcrypt
 
 db = SQLAlchemy()
 
+
 metadata = MetaData()
+
+bcrypt = Bcrypt()
+
+
 
 ### User Models ###
 
@@ -22,39 +27,36 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
     username = db.Column(db.Text, nullable=False)
-    email = db.Column(db.Text, nullable=False)
     password = db.Column(db.Text, nullable=False)
-    weight_entries = db.relationship('WeightEntry', backref='user')
-    workouts = db.relationship('Workout', backref='user')
+    workouts = db.relationship("Workout", cascade="all, delete")
+    weight_entries = db.relationship("WeightEntry", cascade="all, delete")
 
     def __repr__(self):
-        return f"<User #{self.id}: {self.name}, {self.username}, {self.email}, {self.weight_entries}, {self.workouts}>"
-
+        return f"<User # {self.id}: {self.username}>"
 
     @classmethod
-    def signup(cls, username, email, password):
+    def register(cls,username,pwd):
 
-        hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
+        hashed = bcrypt.generate_password_hash(pwd)
 
-        user = User(
-            username = username,
-            email = email,
-            password = hashed_pwd
-        )
-        db.session.add(user)
-        return user
+        hashed_utf8 = hashed.decode("utf8")
+
+        return cls(username=username, password=hashed_utf8)
+
     
     @classmethod
     def authenticate(cls,username,password):
 
-        user = cls.query.filter_by(username=username).first()
+        u = User.query.filter_by(username=username).first()
 
-        if user:
-            is_auth = bcrypt.check_password_hash(user.password, password)
-            if is_auth:
-                return user
+        if u and bcrypt.check_password_hash(u.password, password):
+
+            return u
+        else:
+            return False
+        
+        
 
 
 
@@ -64,26 +66,13 @@ class WeightEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
     weight = db.Column(db.Float, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def get_latest_entry(self,user):
-        last_entries = WeightEntry.objects.filter(user_id=user.id).order_by('-date')[:5]
-        last_entries_details = []
+    
 
-        for index, entry in enumerate(last_entries):
-            curr_entry = entry
-            prev_entry_index = index + 1
 
-            if prev_entry_index < len(last_entries):
-                prev_entry = last_entries[prev_entry_index]
-                else:
-                    prev_entry = None
-            if prev_entry and curr_entry:
-                weight_diff = curr_entry.weight - prev_entry.weight
-            else:
-                weight_diff = None
-            last_entries_details.append((curr_entry, weight_diff))
-        return last_entries_details
+
+ 
 
 
 ### Workout Models ###
@@ -92,19 +81,16 @@ class Workout(db.Model):
 
     __tablename__ = 'workout'
 
-    id= db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     date = db.Column(db.Date, nullable=False)
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
-    sets = db.relationship('Set', backref='workout')
+    sets = db.relationship('Set', backref='workout_sets',lazy='dynamic',cascade="all, delete")
     time = db.Column(db.Integer)
 
-    def get_latest_workout(self,user):
-        last_workout = Workout.objects.filter(user=user).order_by('date').last()
-        if last_workout:
-            return last_workout
-        else:
-            return None
+    
+
+
        
 
 
@@ -115,10 +101,11 @@ class Set(db.Model):
     __tablename__ = 'set'
 
     id = db.Column(db.Integer, primary_key=True)
-    exercise = db.relationship('Exercise', backref='set',lazy=True)
+    exercise = db.Column(db.String(20))
     reps = db.Column(db.Integer)
     weight = db.Column(db.Integer)
-    workout_id = db.Column(db.Integer,db.ForeignKey('workout.id'))
+    workoutid = db.Column(db.Integer, db.ForeignKey('workout.id'), nullable=False)
+    workout = db.relationship('Workout',backref='workout_sets')
 
 
 
@@ -139,10 +126,10 @@ class Muscle(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text,nullable=False)
-    
+    exercises = db.relationship('Exercise', secondary="muscles_used",back_populates="muscles")
 
     def __repr__(self):
-        return f"<{self.name}>"
+        return f"{self.name}"
 
 class Category(db.Model):
 
@@ -150,10 +137,10 @@ class Category(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    exercises = db.relationship('Exercise',backref='category',lazy=True)
+    exercises = db.relationship('Exercise',backref='category')
     
     def __repr__(self):
-        return f"<Category #{self.id},{self.name}, {self.exercises}>"
+        return f"{self.name}"
 
 class Equipment(db.Model):
 
@@ -161,10 +148,10 @@ class Equipment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    exercises = db.relationship('Exercise',secondary=equipment_exercises)
+    exercises = db.relationship('Exercise',secondary=equipment_exercises, back_populates="equipment")
 
     def __repr__(self):
-        return f"<Equipment #{self.id},{self.name},{self.exercises}"
+        return f"{self.name}"
 
 
 
@@ -177,15 +164,13 @@ class Exercise(db.Model):
     name= db.Column(db.String(), nullable=False)
     category_id = db.Column(db.Integer,db.ForeignKey('category.id'))
     set_id = db.Column(db.Integer, db.ForeignKey('set.id'))
-    muscles = db.relationship('Muscle',secondary=muscles_used)
+    muscles = db.relationship('Muscle',secondary=muscles_used, back_populates="exercises")
+    equipment = db.relationship('Equipment', secondary=equipment_exercises, back_populates="exercises")
     description = db.Column(db.Text)
 
     def __repr__(self):
-        return f"<{self.name}>"
+        return f"{self.name}"
     
-
-    
-
    
 
 def connect_db(app):
