@@ -31,7 +31,7 @@ class ExerciseForm(BaseForm):
      name = StringField('Name',validators=[DataRequired()])
      category = QuerySelectField('Category',query_factory=lambda: Category.query.all())
      muscles_used = QuerySelectMultipleField('Muscles Used:', query_factory=lambda: Muscle.query.all(),widget=widgets.ListWidget(prefix_label=False),option_widget=widgets.CheckboxInput())
-     equipment = QuerySelectMultipleField('Equipment:', query_factory=lambda: Equipment.query.all())
+     equipment = QuerySelectMultipleField('Equipment:', query_factory=lambda: Equipment.query.all(),widget=widgets.ListWidget(prefix_label=False),option_widget=widgets.CheckboxInput())
      description = TextAreaField('Description:')
 
 class SignUp(BaseForm):
