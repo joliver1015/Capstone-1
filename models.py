@@ -7,10 +7,6 @@ from datetime import datetime
 from flask_bcrypt import Bcrypt
 
 
-
-
-
-
 db = SQLAlchemy()
 
 
@@ -69,12 +65,6 @@ class WeightEntry(db.Model):
     weight = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    
-
-
-
- 
-
 
 ### Workout Models ###
 
@@ -88,13 +78,6 @@ class Workout(db.Model):
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
     sets = db.relationship('Set', backref='workout_sets',lazy='dynamic',cascade="all, delete")
     time = db.Column(db.Integer)
-
-    
-
-
-       
-
-
 
 
 class Set(db.Model):

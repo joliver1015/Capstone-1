@@ -14,17 +14,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhost:5432/exercise_api"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['SECRET_KEY'] = 'Secret_150%'
+app.config['SECRET_KEY'] = '20930485093202934'
 
 connect_db(app)
 
 app.app_context().push()
 
+#Uncomment this and comment out the db.create_all() below to load initial data. WARNING: This will clear user data
+#seed_data()
+
 
 db.create_all()
-
-
-
 
 #######################################################################################################
 # User signup/login/logout
@@ -383,7 +383,7 @@ def create_exercise():
 
     if not g.user:
         flash("You must be logged in to view this page")
-        return redirect("/")
+        return redirect("/unauthorized")
     
     else:
         form = ExerciseForm()
@@ -454,7 +454,6 @@ def view_category(category_id):
 
 #########################################################################
 #Muscle Routes
-
 
 
 @app.route('/exercise/muscles/overview', methods=["GET"])
