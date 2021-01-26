@@ -305,6 +305,19 @@ def new_set(workout_id):
     
     return render_template('workout/new-set.html', form = form)
 
+@app.route('/workout/<workout_id>/<set_id>/delete-set' methods=["POST"])
+def delete_set(workout_id,set_id):
+
+    workout = Workout.query.get_or_404(workout_id)
+
+    target_set = workout.sets.set_id
+
+    workout.sets.remove(target_set)
+
+    db.session.commit()
+
+    return redirect(url_for('view_workout',workout_id=workout_id))
+
 
 #####################################################################################
 # Weight entry routes
