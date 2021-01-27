@@ -20,11 +20,16 @@ connect_db(app)
 
 app.app_context().push()
 
-#Uncomment this and comment out the db.create_all() below to load initial data. WARNING: This will clear user data
-#seed_data()
+exists = db.session.query(User.id).first()
 
+#Checks if User table has a
 
-db.create_all()
+if exists:
+    
+    db.create_all()
+
+else:
+    seed_data()
 
 #######################################################################################################
 # User signup/login/logout
@@ -241,13 +246,11 @@ def view_workout(workout_id):
     else:
         workout = Workout.query.get_or_404(workout_id)
     
-
-        form = SetForm()
        
 
             
 
-    return render_template("workout/detail.html",form=form, workout=workout)
+    return render_template("workout/detail.html", workout=workout)
     
 
 @app.route('/workout/new',methods=["GET","POST"])
@@ -280,11 +283,10 @@ def new_workout():
 ######################################################################################
 # Set Routes
 
-@app.route('/workout/<workout_id>/new-set', methods=["POST"])
+@app.route('/workout/<workout_id>/new-set', methods=["GET","POST"])
 def new_set(workout_id):
 
     """ Creates a new set on the workout page """
-
 
     workout = Workout.query.get_or_404(workout_id)
 
@@ -303,20 +305,20 @@ def new_set(workout_id):
         db.session.commit()
         return redirect(url_for('view_workout',workout_id=workout_id))
     
-    return render_template('workout/new-set.html', form = form)
+    return render_template('workout/new-set.html', form=form, workout=workout)
 
-@app.route('/workout/<workout_id>/<set_id>/delete-set' methods=["POST"])
+@app.route('/workout/<workout_id>/<set_id>/delete-set', methods=["GET","POST"])
 def delete_set(workout_id,set_id):
 
     workout = Workout.query.get_or_404(workout_id)
 
-    target_set = workout.sets.set_id
+    target_set = Set.query.get_or_404(set_id)
 
-    workout.sets.remove(target_set)
+    db.session.delete(target_set)
 
     db.session.commit()
 
-    return redirect(url_for('view_workout',workout_id=workout_id))
+    return redirect(url_for('view_workout', workout_id=workout_id ))
 
 
 #####################################################################################
@@ -416,7 +418,6 @@ def create_exercise():
             muscles = form.muscles_used.data
 
             category.exercises.append(new_exercise)
-
 
             for equip in equipment:
                 equip.exercises.append(new_exercise)

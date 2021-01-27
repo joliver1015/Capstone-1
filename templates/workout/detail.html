@@ -14,27 +14,7 @@
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-md-8 order-2 order-2 order-sm-1 mt-3">
-        <form action="/workout/{{workout.id}}/new-set" method="POST">
-            {{ form.hidden_tag() }}
-            {% for field in form
-                if field.widget.input_type != 'hidden' %}
-            <p>
-                {{ field.label }}
-                {{ field(class_="form-control") }}
-          
-                {% for error in field.errors %}
-            {% endfor %}
-        </p>
-        {% endfor %}
-
-            <button class="btn btn-success btn-sm">Add Set</a>
-        </form>
-    </div>
-</div>
-
-
+<a href="/workout/{{ workout.id }}/new-set" class="btn btn-success btn-sm justify-content-center">Add Set</a>
 <div class="row">
     <div class="col-md-8 order-2 order-2 order-sm-1 mt-3">
         <div>
@@ -42,7 +22,7 @@
                 {% for set in workout.sets %}
                 <p class="list-group-item-heading h5">Exercise: {{ set.exercise }}</p>
                 <p class="list-group-item-text">Repetitions :{{ set.reps }}</p>
-                <p class="list-group-item-text"> Weight :{{ set.weight }}<span><form action="/workout/{{ workout_id }}/delete-set" method="post"></form><input type="submit" value="Delete Set" class="btn btn-danger btn-small"></span></p>
+                <p class="list-group-item-text"> Weight :{{ set.weight }}<span><a href="/workout/{{ workout.id }}/{{ set.id }}/delete-set" class="btn btn-danger btn-sm">Delete</a></span></p>
                 {% endfor %}
             </div>
         </div>

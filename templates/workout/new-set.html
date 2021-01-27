@@ -1,26 +1,43 @@
 {% extends 'base.html' %}
 {% block content %}
-<div>
-    <h2>Set Details</h2>
-    <div>
-        <form method="POST">
-            {{ form.hidden_tag() }}
-        {% for field in form
-            if field.widget.input_type != 'hidden' %}
-        <p>
-            {{ field.label }}
-            {{ field(class_="form-control") }}
-          
-            {% for error in field.errors %}
-            <span class="form-text text-danger">{{ error }}</span>
-            {% endfor %}
-        </p>
-        {% endfor %}
-            <button class="btn btn-outline-success btn-block">Add Set</button>
-            
-        </form>
-        <a href="/workout/view/{{workout.id}}"class="btn btn-outline-primary btn-block">Return to Workout</button> 
+<div class="row">
+    <div class="col-sm-8 .offset-md-3">
+        <h2 class="page-header">New Set</h2>
     </div>
 </div>
+<hr>
+    <div class="justify-content-center">
+        <form method="POST" class="col-md-6 .offset-md-3">
+            <div class="justify-content-center">
+                <div class="form-group">
+                    {{ form.csrf_token }}
+                    {{ form.exercise.label}}
+                    {{ form.exercise }}
+                    {% for error in form.exercise.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.csrf_token }}
+                    {{ form.reps.label }}
+                    {{ form.reps }}
+                    {% for error in form.reps.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.csrf_token }}
+                    {{ form.weight.label }}
+                    {{ form.weight }}
+                    {% for error in form.weight.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </div>
+                <button class="btn btn-success btn-sm">Add Set</button>
+            </div>
+        </form>
+        <a href="/workout/view/{{ workout.id }}"class="btn btn-outline-primary btn-sm">Return to Workout</a> 
+    </div>
+
 
 {% endblock %}
