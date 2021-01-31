@@ -2,6 +2,10 @@
 
 A Workout and weight tracking app with a built in exercise database.
 
+#Schema
+
+https://app.quickdatabasediagrams.com/#/d/UHcPlb
+
 # Workout Tracking
 
 Track workouts done, including exercises done, as well as time elapsed.
