@@ -2,7 +2,10 @@
 
 A Workout and weight tracking app with a built in exercise database.
 
-#Schema
+Flask, SQLAlchemy and JInja2 were used on this project.
+
+
+# Schema
 
 https://app.quickdatabasediagrams.com/#/d/UHcPlb
 
