@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row">
+    <div class="col-12 col-md-8 ml-3">
+        <h2 id="page-title" class="page-header">
+            Rep Ranges and 1RM Calculator
+        </h2>
+        <hr>
+    </div>
+</div>
+
+<div class="ml-3">
+    <h5>Picking the right number:</h5>
+    <p>It is important to make sure that your strength workouts reflect what you want to get out of it. 
+        Having the right amount of sets and repetitions at the appropriate amount of weight is key to efficiently reach your goals.
+    </p>
+
+    <h5>Strength:</h5>
+    <p>Number of Sets: 2 to 6</p>
+    <p>Number of Reps: 1 to 6</p>
+    <p>Percent of 1 Rep Max: 85-100%</p>
+    <p>Rest Time Between Sets: 2 to 5 minutes</p>
+    <br>
+    <h5>Hypertrophy:</h5>
+    <p>Number of Sets: 3 to 6</p>
+    <p>Number of Reps: 6 to 12</p>
+    <p>Percent of 1 Rep Max: 70-85%</p>
+    <p>Rest Time Between Sets: 30 to 90 seconds</p>
+    <br>
+    <h5>Endurance:</h5>
+    <p>Number of Sets: 3 to 6</p>
+    <p>Number of Reps: 12 to 20</p>
+    <p>Percent of 1 Rep Max: 20-70%</p>
+    <p>Rest Time Between Sets: 30 to 60 seconds</p>
+    <br>
+    <h5>Power:</h5>
+    <p>Number of Sets: 3 to 5</p>
+    <p>Number of Reps: 1 to 5 for strength, 8 to 10 for speed</p>
+    <p>Percent of 1 Rep Max: 85% to 100% for strength, up to 10% body weight for speed</p>
+    <p>Rest Time Between Sets: 1 to 2 minutes, 3 to 5 for higher load/intensity</p>
+</div>
+<div class="ml-3">
+    <h5>1RM Calculator</h5>
+    <p>Instructions:</p>
+    <p>Enter the weight and number of repetitions you performed to estimate the maxiumum amount of weight you can lift for one repetition</p>
+    <form action="/calculate-1rm" method="post">
+        <div class="form-group">
+            {{ form.csrf_token }}
+            {{ form.weight_lifted.label }}
+            {{ form.weight_lifted }}
+            {% for error in form.weight_lifted.errors %}
+                <li style="color:red;">{{ error }}</li>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.csrf_token }}
+            {{ form.repetitions.label }}
+            {{ form.repetitions }}
+            {% for error in form.repetitions.errors %}
+                <li style="color:red;">{{ error }}</li>
+            {% endfor %}
+        </div>
+        <button class="btn btn-primary btn-sm">Calculate 1RM</button>
+    </form>
+    <br>
+    <div>
+        <p>{{ result }}</p>
+    </div>
+</div>
+
+
+{% endblock %}

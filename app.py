@@ -208,12 +208,56 @@ def dashboard():
 
         return render_template("dashboard.html", current_weight=curr_entry, weight_diff=weight_diff,latest_workout=latest_workout)
 
+##################################################################
+# Resource and unauthorized page routes
+
+@app.route('/workout-templates', methods=["GET"])
+def show_templates():
+
+    """ Shows page for information about workout scheduling """
+
+    return render_template("workout-templates.html")
+
 @app.route('/unauthorized',methods=["GET"])
 def show_unauthorized_page():
 
     """ Shows page for users not logged in trying to access account-only features """
 
     return render_template("unauthorized.html")
+
+@app.route('/rep-ranges',methods=["GET"])
+def show_reps():
+    """ Shows page for rep ranges and 1RM calculator """
+
+    form = OneRepMaxForm()
+
+    return render_template("rep-ranges.html",form=form)
+
+@app.route('/calculate-1rm', methods=["POST"])
+def calculate_one_rm():
+
+    """ Calculates 1RM using Epley Formula and given number of repetitions and weight """
+
+    form = OneRepMaxForm()
+
+    if form.validate_on_submit():
+
+        weight_lifted = form.weight_lifted.data  
+        repetitions = form.repetitions.data
+
+        calculation = round((0.033 * repetitions * weight_lifted) + weight_lifted)
+
+        result = f"Your 1RM is: {calculation}lbs."
+
+        return render_template("rep-ranges.html",form=form,result=result)
+    
+    else:
+
+        render_template("reo-ranges.html",form=form)
+
+
+
+
 
 ##################################################
 #Workout Routes

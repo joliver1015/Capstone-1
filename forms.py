@@ -46,6 +46,13 @@ class WeightEntryForm(BaseForm):
     date = DateField("Date",default=date.today)
     weight = IntegerField("Weight(lbs)",validators=[DataRequired()])
 
+class OneRepMaxForm(BaseForm):
+    repetitions = IntegerField("Number of Repetitions", validators=[DataRequired()])
+    weight_lifted = IntegerField("Weight(lbs)", validators=[DataRequired()])
+
+
+
+
 
 
 
