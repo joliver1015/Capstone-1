@@ -6,15 +6,15 @@ from models import db, connect_db, User, WeightEntry, Workout, Set, Exercise, Ca
 from sqlalchemy.types import Text
 from forms import *
 from seed import seed_data
-
+import os
 CURR_USER_KEY = 'curr_user'
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhost:5432/exercise_api"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('HEROKU_POSTGRESQL_BLACK_URL',"postgres:///exercise_api")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['SECRET_KEY'] = '20930485093202934'
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY","default1234%")
 
 connect_db(app)
 
@@ -507,6 +507,8 @@ def view_category(category_id):
     """ Shows exercises related to specific category """
 
     category = Category.query.get_or_404(category_id)
+
+    
 
     return render_template("exercise/categories/view.html", category=category)
 
