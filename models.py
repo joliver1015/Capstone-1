@@ -144,10 +144,10 @@ class Exercise(db.Model):
 
     __tablename__ = 'exercise'
 
+
     id = db.Column(db.Integer, primary_key=True)
     name= db.Column(db.String(), nullable=False)
     category_id = db.Column(db.Integer,db.ForeignKey('category.id'))
-    set_id = db.Column(db.Integer, db.ForeignKey('set.id'))
     muscles = db.relationship('Muscle',secondary=muscles_used, back_populates="exercises")
     equipment = db.relationship('Equipment', secondary=equipment_exercises, back_populates="exercises")
     description = db.Column(db.Text)
